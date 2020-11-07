@@ -2,28 +2,35 @@
 import Utils from './utils.js'
 import ProxyTrap from './proxy-trap.js'
 import Patch from './patch.js'
+import Inject from './inject.js'
 
-export default function ({template, data, render, $target, trace}) {
-  const injected = Utils.parseTemplate(template)
+export default {
+  parse (template, parser) {
+    return Inject(template, parser)
+  },
 
-  const trap = ProxyTrap.create(data, function (changed) {
-    const $v = Utils.getShadow(render(injected, trap))
-    const startTime = new Date().getTime()
+  app ({template, data, parser, render, trace}) {
+    const injected = this.parse(template, parser)
 
-    if (trace) {
-      console.group('changed:', ...changed)
-      console.log('vDom', $v)
-    }
+    const trap = ProxyTrap.create(data, function (changed) {
+      const $v = Utils.getShadow(render(template, trap))
+      const startTime = new Date().getTime()
 
-    Patch($target, $v, changed, trace)
+      if (trace) {
+        console.group('changed:', changed)
+        console.log('vDom', $v)
+      }
 
-    if (trace) {
-      const endTime = new Date().getTime()
-      console.log('re-render took: ' + (endTime - startTime) + 'ms')
-      console.groupEnd()
-    }
-  })
+      Patch($v, changed, trace)
 
-  $target.innerHTML = render(injected, trap)
-  return { template: injected, data: trap }
+      if (trace) {
+        const endTime = new Date().getTime()
+        console.log('re-render took:', (endTime - startTime), 'ms')
+        console.groupEnd()
+      }
+    })
+
+    return {data: trap, template: injected }
+  }
+
 }

@@ -29,15 +29,13 @@
   </div>
 
   <script type="text/template" id="demo-template">
-    <h1 live-item="name" class="<%= highlightIfDavid() %>"><%= name %></h1>
+    <h1 class="<%= highlightIfDavid() %>"><%= name %></h1>
 
-    <div live-item="name">
-      <% if (name === "david") { %>
-        <blockqoute>Hello <%= name %>!</blockqoute>
-      <% } %>
-    </div>
+    <% if (name === "david") { %>
+      <blockqoute>Hello <%= name %>!</blockqoute>
+    <% } %>
 
-    <ul live-group="items.length" data-items="<%= JSON.stringify(items) %>">
+    <ul data-items="<%= JSON.stringify(items) %>">
       <% items.forEach((item, index) => { %>
         <li>
           <%= item.id %>
@@ -47,20 +45,21 @@
       <% }); %>
     </ul>
 
-    <input type="text" live-item="name" value="<%= name %>" oninput="app.handlers.changeName(event)" />
+    <input type="text" value="<%= name %>" oninput="app.handlers.changeName(event)" />
     two way
     <input type="text" value="<%= name %>" oninput="app.handlers.changeName(event)" />
-    <textarea live-item="name" oninput="app.handlers.changeName(event)"><%= name %></textarea>
+
+    <textarea oninput="app.handlers.changeName(event)"><%= name %></textarea>
 
     <hr/>
 
-    <div live-item="newName,name">
+    <div>
       <%= newName %>
     </div>
 
     <label>
       add one
-      <input  type="text" live-item value="<%= newName %>" oninput="app.handlers.changeNewName(event)" />
+      <input type="text" value="<%= newName %>" oninput="app.handlers.changeNewName(event)" />
       <button onclick="app.handlers.add()">Add</button>
     </label>
   </script>

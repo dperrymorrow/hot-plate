@@ -1,13 +1,21 @@
 
 export default {
   attrs: {
-    item: 'live-item',
-    group: 'live-group',
-    itemId: 'item-id',
-    groupId: 'group-id'
+    id: 'hp-id',
+    hotAttr: 'hp-attrs'
   },
+
   regex: {
-    item: /<.+(live-item)/gm,
-    group: /<.+(live-group)/gm
+    ejs: {
+      isDynamicAttr (value) {
+        return /<%.*%>/.test(value)
+      },
+      cleanAttr (value) {
+        return value.replace(/<%=(.*)%>/, (full, key) => key.trim())
+      },
+      cleanup (html) {
+        return html.replace(/%&gt;/g, '%>').replace(/&lt;%/g, '<%').replace(/=&gt;/g, '=>')
+      }
+    }
   }
 }

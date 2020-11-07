@@ -1,5 +1,3 @@
-import Constants from './const.js'
-const {regex, attrs} = Constants
 
 export default {
   random () {
@@ -23,29 +21,25 @@ export default {
     return $tmp
   },
 
-  parseTemplate (tpl) {
-    // give every live item a render id
+  attrQuery: (changed) => changed.map(path => `[hp-attrs*=":${path}"]`).concat(`[hp-attrs*=":*"]`).join(),
 
-    return tpl.replace(regex.item, (match, str) => {
-      return match.replace(str, `${attrs.itemId}="${this.random()}" ${attrs.item}`)
-    }).replace(regex.group, (match, str) => {
-      return match.replace(str, `${attrs.groupId}="${this.random()}" ${attrs.group}`)
-    })
+  hotAttrs ($el) {
+    const val = $el.getAttribute('hp-attrs')
+    return val ? val.split(',').reduce((acc, pair) => {
+      const [att, trigger] = pair.split(':')
+      acc[att] = trigger
+      return acc
+    }, {}) : null
   },
 
-  matchAtts ($r, $v) {
-    const rAtts = $r.attributes
-    const vAtts = $v.attributes
+  shallowClone ($el) {
+    const $clone = $el.cloneNode(false)
+    Array.from($el.children).forEach($child => {
+      if ($child.tagName) $child.remove()
+    })
+    return $clone
+  },
 
-    for (let i = vAtts.length - 1; i >= 0; i--) {
-      const att = vAtts[i]
-      if ($r.getAttribute(att.name) !== att.value) $r.setAttribute(att.name, att.value)
-    }
-
-    for (let i = rAtts.length - 1; i >= 0; i--) {
-      const att = rAtts[i]
-      if (!$v.hasAttribute(att.name)) $r.removeAttribute(att.name)
-    }
-  }
+  getMatch: ($el) => document.querySelector(`[hp-id="${$el.getAttribute('hp-id')}"]`)
 
 }

@@ -1,5 +1,6 @@
 
 import HotPlate from '../src/index.js'
+import EjsParser from '../src/parsers/ejs.js'
 
 const inputData = {
   items: [
@@ -27,13 +28,15 @@ const inputData = {
   }
 }
 
-const {data, template} = LiveJs({
+const {template, data} = HotPlate.app({
   template: document.getElementById('demo-template').innerHTML,
   data: inputData,
   render: ejs.render,
-  $target: document.getElementById('app'),
+  parser: EjsParser,
   trace: true
 })
+
+document.getElementById('app').innerHTML = ejs.render(template, data)
 
 window.app = {
   handlers: {
