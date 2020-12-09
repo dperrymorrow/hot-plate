@@ -16,4 +16,15 @@ export default function ($vTree, changed, trace) {
       else $r.setAttribute(key, $v.getAttribute(key))
     })
   })
+
+  $vTree.querySelectorAll(Utils.textQuery(changed)).forEach($v => {
+    const $r = Utils.getMatch($v)
+
+    if (trace) {
+      console.log('patching text:', $r.getAttribute('hp-text'))
+      console.log($r)
+    }
+
+    if ($r) $r.innerText = $v.innerText
+  })
 }

@@ -8,7 +8,7 @@ export default {
     const _debounced = Utils.debounce(() => {
       callback(que)
       que = []
-    })
+    }, 10)
 
     const _addToQue = path => {
       if (!que.includes(path)) que.push(path)

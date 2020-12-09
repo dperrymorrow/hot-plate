@@ -2,6 +2,10 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
+
+    <link rel="stylesheet" href="//unpkg.com/dracula-prism/css/dracula-prism.css">
+
+    <script src="//unpkg.com/prismjs@1.21.0/prism.js"></script>
     <script src="//unpkg.com/ejs@3.1.5/ejs.min.js"></script>
 
     <style media="screen">
@@ -18,24 +22,37 @@
       h1.highlight {
         color: red;
       }
+
+      pre.injected {
+        background-color: #222;
+        font-family: Monaco;
+        font-isze: 13px;
+        color: #efefef;
+      }
     </style>
   </head>
   <body>
 
   </body>
 
+  <pre class="injected" id="injected"></pre>
+
+  <hr></hr/>
+
+  </textarea>
+
   <div id="app">
     <!-- application is rendered here -->
   </div>
 
   <script type="text/template" id="demo-template">
-    <h1 class="<%= highlightIfDavid() %>"><%= name %></h1>
+    <h1 class="<%= highlightIfDavid() %> <%= name %>" enabled="<%= name %>"><%= name %></h1>
 
     <% if (name === "david") { %>
       <blockqoute>Hello <%= name %>!</blockqoute>
     <% } %>
 
-    <ul data-items="<%= JSON.stringify(items) %>">
+    <ul data-items="<%= JSON.stringify(items) %><%= name %>">
       <% items.forEach((item, index) => { %>
         <li>
           <%= item.id %>
@@ -49,7 +66,7 @@
     two way
     <input type="text" value="<%= name %>" oninput="app.handlers.changeName(event)" />
 
-    <textarea oninput="app.handlers.changeName(event)"><%= name %></textarea>
+    <textarea class="<%= name %>" oninput="app.handlers.changeName(event)"><%= name %></textarea>
 
     <hr/>
 

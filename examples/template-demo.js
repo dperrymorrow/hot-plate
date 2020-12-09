@@ -1,12 +1,10 @@
-
-import HotPlate from '../src/index.js'
-import EjsParser from '../src/parsers/ejs.js'
-
-const inputData = {
+import Template from "../src/template.js"
+const tpl = document.getElementById("template").innerHTML
+const data = {
   items: [
     {id: 1, title: 'foo' },
     {id: 2, title: 'bar' },
-    {id: 3, title: 'foo' }
+    {id: 3, title: 'foo' , skills: ["css", "html"]},
   ],
   name: 'Dave',
   newName: '',
@@ -14,17 +12,6 @@ const inputData = {
     return this.name === 'Dave' ? 'highlight' : ''
   }
 }
-
-const {template, data} = HotPlate.app({
-  template: document.getElementById('demo-template').innerHTML,
-  data: inputData,
-  render: ejs.render,
-  parser: HotPlate.parsers.ejs,
-  trace: true
-})
-
-document.getElementById('injected').innerHTML = Prism.highlight(template, Prism.languages.javascript, 'javascript')
-document.getElementById('app').innerHTML = ejs.render(template, data)
 
 window.app = {
   handlers: {
@@ -48,3 +35,7 @@ window.app = {
     }
   }
 }
+
+console.log(data)
+
+document.getElementById("app").innerHTML = Template(tpl, data)

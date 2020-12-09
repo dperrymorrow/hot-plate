@@ -3,17 +3,19 @@ import Utils from './utils.js'
 import ProxyTrap from './proxy-trap.js'
 import Patch from './patch.js'
 import Inject from './inject.js'
+import ejs from './parsers/ejs.js'
 
 export default {
-  parse (template, parser) {
-    return Inject(template, parser)
+  parsers: {
+    ejs
   },
 
   app ({template, data, parser, render, trace}) {
-    const injected = this.parse(template, parser)
+    const store = {}
+    const injected = Inject(template, parser, store)
 
     const trap = ProxyTrap.create(data, function (changed) {
-      const $v = Utils.getShadow(render(template, trap))
+      const $v = Utils.getShadow(render(injected, trap))
       const startTime = new Date().getTime()
 
       if (trace) {
@@ -30,7 +32,7 @@ export default {
       }
     })
 
-    return {data: trap, template: injected }
+    return {data: trap, template: injected, store}
   }
 
 }

@@ -1,37 +1,68 @@
 
-import Constants from './const.js'
 import Utils from './utils.js'
-
-const {regex, attrs} = Constants
+const TXT_VALUE = ['TEXTAREA']
 
 export default function (tpl, parser) {
-  function _injectNode ($el) {
-    const dynamic = Array.from($el.attributes).filter(att => parser.outlet.test(att.value))
+  function _getKeys (outlets) {
+    outlets = outlets || []
+    return outlets.map(match => match.replace(parser.outlet, (match, path) => path))
+  }
 
-    if (dynamic.length) {
-      $el.setAttribute('hp-id', Utils.random())
-      $el.setAttribute('hp-attrs', dynamic.map(item => {
-        let key = item.value.replace(parser.outlet, (match, path) => path.trim())
+  function _handleProps ($el) {
+    const dynamic = Array.from($el.attributes).reduce((acc, att) => {
+      const {name, value} = att
+      const keys = _getKeys(att.value.match(parser.outlet))
+      if (keys.length) acc[name] = keys
+      return acc
+    }, {})
 
-        if (key.endsWith('()')) key = '(.*)'
-        return `${item.name}:${key}`
-      }).join(','))
+    if (Object.keys(dynamic).length) {
+      Object.entries(dynamic).forEach(([key, triggers]) => {
+        Utils.setAttrTrigger($el, key, triggers)
+      })
     }
-    // console.log(Utils.shallowClone($el))
-    // console.log($el.innerText)
-    // console.log(Utils.shallowClone($el).innerText)
+  }
 
-    // console.log($el.cloneNode(false))
+  function _textNode ($el) {
+    const $parent = $el.parentElement
+    const matches = $el.textContent.match(parser.outlet)
 
-    Array.from($el.children).forEach(_injectNode)
-    // only do this if we have dynamic attrs or content
+    if (matches && matches.length) {
+      const triggers = _getKeys(matches)
+
+      if ($parent && TXT_VALUE.includes($parent.tagName)) {
+        Utils.setAttrTrigger($parent, 'value', triggers)
+      } else {
+        const $wrapper = document.createElement('span')
+        Utils.setAttrTrigger($wrapper, 'text', triggers)
+        $el.parentNode.insertBefore($wrapper, $el)
+        $wrapper.append($el)
+      }
+    } else {
+      const iterations = $el.textContent.match(parser.iterate)
+      if (iterations && iterations.length) {
+        const $parent = $el.parentNode
+        $el.parentNode.setAttribute('hp-id', Utils.random())
+        iterations.forEach(match => {
+          $el.parentNode.setAttribute('hp-iterate', Array.from(iterations).map(match => {
+            return match.replace(parser.iterate, (match, key) => key)
+          }).join(','))
+        })
+      }
+    }
+  }
+
+  function _injectNode ($el) {
+    if ($el.nodeType === Node.TEXT_NODE) _textNode($el)
+    else _handleProps($el)
+
+    Array.from($el.childNodes).forEach(_injectNode)
   }
 
   const $shadow = Utils.getShadow(tpl)
   const cleanup = parser.cleanup || []
 
-  Array.from($shadow.children).forEach(_injectNode)
-
+  Array.from($shadow.childNodes).forEach(_injectNode)
   let injected = $shadow.innerHTML
 
   cleanup.forEach(({search, replace}) => {

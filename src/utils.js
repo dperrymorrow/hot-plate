@@ -1,8 +1,13 @@
 
+const ATTR = 'hp-live'
+const ID = 'hp-id'
+const DILEM = '|'
+const FN = 'fn'
+
 export default {
   random () {
     const min = Date.now()
-    return Math.round(Math.random() * (9999999999999 - min) + min)
+    return Math.round(Math.random() * (9999999999999 - min) + min).toString(36)
   },
 
   debounce (callback, wait = 0) {
@@ -21,25 +26,31 @@ export default {
     return $tmp
   },
 
-  attrQuery: (changed) => changed.map(path => `[hp-attrs*=":${path}"]`).concat(`[hp-attrs*=":*"]`).join(),
+  setAttrTrigger ($el, attr, triggers) {
+    $el.setAttribute(ID, this.random())
 
-  hotAttrs ($el) {
-    const val = $el.getAttribute('hp-attrs')
-    return val ? val.split(',').reduce((acc, pair) => {
-      const [att, trigger] = pair.split(':')
-      acc[att] = trigger
-      return acc
-    }, {}) : null
+    triggers = triggers.map(trigger => trigger.endsWith(')') ? FN : trigger
+    ).join(',')
+
+    const existing = $el.getAttribute(ATTR) ? $el.getAttribute(ATTR).split(DILEM) : []
+    $el.setAttribute(ATTR, existing.concat(`${attr}:${triggers}`).join(DILEM))
   },
 
-  shallowClone ($el) {
-    const $clone = $el.cloneNode(false)
-    Array.from($el.children).forEach($child => {
-      if ($child.tagName) $child.remove()
-    })
-    return $clone
-  },
+  attrQuery: (changed) => changed.map(path => `[${ATTR}*=":${path}"]`).concat(`[${ATTR}*=":*"]`).join(),
 
-  getMatch: ($el) => document.querySelector(`[hp-id="${$el.getAttribute('hp-id')}"]`)
+  // textQuery: (changed) => changed.map(path => `[hp-text*="${path}"]`).concat(`[hp-text*="*"]`).join(),
+
+  // NOT SURE IF WE NEED THIS STUFF
+
+  // hotAttrs ($el) {
+  //   const val = $el.getAttribute(ATTR)
+  //   return val ? val.split(',').reduce((acc, pair) => {
+  //     const [att, trigger] = pair.split(':')
+  //     acc[att] = trigger
+  //     return acc
+  //   }, {}) : null
+  // },
+
+  getMatch: ($el) => document.querySelector(`[${ID}="${$el.getAttribute(ID)}"]`)
 
 }
