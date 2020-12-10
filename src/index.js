@@ -16,29 +16,26 @@ export default {
     const injected = Inject(template, parser, store)
 
     const trap = ProxyTrap.create(data, function (changed) {
+      const startTime = new Date().getTime()
+      if (trace) console.group('changed:', changed)
+
       const $v = Utils.getShadow(render(injected, trap))
       const toPatch = store.find(changed)
-      const startTime = new Date().getTime()
+      const storeDone = new Date().getTime()
+
+      Patch($v, toPatch, false)
+      const renderDone = new Date().getTime()
 
       if (trace) {
-        console.group('changed:', changed)
         console.log('needs patched:', toPatch)
-        console.log('parsing store took:', (new Date().getTime() - startTime), 'ms')
+        console.log('parsing store took:', storeDone - startTime, 'ms')
+        console.log('re-render took:', renderDone - startTime, 'ms')
         console.log('vDom:', $v)
-      }
-
-      Patch($v, toPatch, trace)
-
-      if (trace) {
-        console.log('re-render took:', (new Date().getTime() - startTime), 'ms')
         console.groupEnd()
       }
     })
 
-    if (trace) {
-      console.log(store.stash)
-    }
-
+    if (trace) console.log('store', store.stash)
     return {data: trap, template: injected, store}
   }
 

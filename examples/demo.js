@@ -18,7 +18,7 @@ const inputData = {
 const tpl = document.getElementById('demo-template').innerHTML
 
 const {template, data} = HotPlate.app({
-  template: tpl + tpl + tpl + tpl + tpl,
+  template: Array(100).fill(tpl).join('\n'),
   data: inputData,
   render: ejs.render,
   parser: HotPlate.parsers.ejs,

@@ -3,11 +3,14 @@ import Utils from './utils.js'
 
 const SPECIAL = {
   text ($r, $v) {
-    $r.innerText = $v.innerText
+    const desired = $v.innerHTMl
+    const current = $r.innerHTML
+    if (current !== desired) $r.innerHTML = $v.innerHTML
   },
   value ($r, $v) {
-    if ($v.value) $r.value = $v.value
-    else $r.value = ''
+    const desired = $v.value === null ? '' : $v.value
+    const current = $r.value
+    if (current !== desired) $r.value = desired
   }
 }
 
@@ -15,7 +18,6 @@ export default function ($vTree, needsPatched, trace) {
   console.groupCollapsed('updates')
 
   Object.entries(needsPatched).forEach(([id, props]) => {
-    // console.log(id, props)
     const $v = Utils.findId($vTree, id, true)
     const $r = Utils.findId(document, id, true)
 
@@ -23,7 +25,11 @@ export default function ($vTree, needsPatched, trace) {
       props.forEach(prop => {
         if (trace) console.log('setting', prop, $r)
         if (prop in SPECIAL) SPECIAL[prop]($r, $v)
-        else $r.setAttribute(prop, $v.getAttribute(prop))
+        else {
+          const desired = $v.getAttribute(prop)
+          const current = $r.getAttribute(prop)
+          if (current !== desired) $r.setAttribute(prop, desired)
+        }
       })
     }
   })
