@@ -1,14 +1,10 @@
 
 const ATTR = 'hp-live'
-const ID = 'hp-id'
+const ID_PREFIX = 'hp-'
 const DILEM = '|'
 const FN = 'fn'
 
 export default {
-  random () {
-    const min = Date.now()
-    return Math.round(Math.random() * (9999999999999 - min) + min).toString(36)
-  },
 
   debounce (callback, wait = 0) {
     let timeout = null
@@ -26,31 +22,29 @@ export default {
     return $tmp
   },
 
-  setAttrTrigger ($el, attr, triggers) {
-    $el.setAttribute(ID, this.random())
+  addId ($el) {
+    const existing = [...$el.attributes].find((attr) => attr.name.startsWith(ID_PREFIX))
+    if (existing) return existing.name.replace(ID_PREFIX, '')
 
-    triggers = triggers.map(trigger => trigger.endsWith(')') ? FN : trigger
-    ).join(',')
-
-    const existing = $el.getAttribute(ATTR) ? $el.getAttribute(ATTR).split(DILEM) : []
-    $el.setAttribute(ATTR, existing.concat(`${attr}:${triggers}`).join(DILEM))
+    const min = Date.now()
+    const uniq = Math.round(Math.random() * (9999999999999 - min) + min).toString(36)
+    $el.setAttribute(`${ID_PREFIX}${uniq}`, '')
+    return uniq
   },
 
-  attrQuery: (changed) => changed.map(path => `[${ATTR}*=":${path}"]`).concat(`[${ATTR}*=":*"]`).join(),
+  wrap ($el) {
+    const $wrapper = document.createElement('span')
+    const id = this.addId($wrapper)
+    $el.parentNode.insertBefore($wrapper, $el)
+    $wrapper.append($el)
+    return id
+  },
 
-  // textQuery: (changed) => changed.map(path => `[hp-text*="${path}"]`).concat(`[hp-text*="*"]`).join(),
+  findId ($tree, id, single = true) {
+    const search = `[${ID_PREFIX}${id}]`
+    return single ? $tree.querySelector(search) : $tree.querySelectorAll(search)
+  }
 
-  // NOT SURE IF WE NEED THIS STUFF
-
-  // hotAttrs ($el) {
-  //   const val = $el.getAttribute(ATTR)
-  //   return val ? val.split(',').reduce((acc, pair) => {
-  //     const [att, trigger] = pair.split(':')
-  //     acc[att] = trigger
-  //     return acc
-  //   }, {}) : null
-  // },
-
-  getMatch: ($el) => document.querySelector(`[${ID}="${$el.getAttribute(ID)}"]`)
+  // getMatch: ($el) => document.querySelector(`[${ID}="${$el.getAttribute(ID)}"]`)
 
 }

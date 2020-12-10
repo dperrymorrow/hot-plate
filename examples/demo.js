@@ -15,15 +15,16 @@ const inputData = {
   }
 }
 
+const tpl = document.getElementById('demo-template').innerHTML
+
 const {template, data} = HotPlate.app({
-  template: document.getElementById('demo-template').innerHTML,
+  template: tpl + tpl + tpl + tpl + tpl,
   data: inputData,
   render: ejs.render,
   parser: HotPlate.parsers.ejs,
   trace: true
 })
 
-document.getElementById('injected').innerHTML = Prism.highlight(template, Prism.languages.javascript, 'javascript')
 document.getElementById('app').innerHTML = ejs.render(template, data)
 
 window.app = {

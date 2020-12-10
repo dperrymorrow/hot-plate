@@ -2,13 +2,15 @@
 import Utils from './utils.js'
 const TXT_VALUE = ['TEXTAREA']
 
-export default function (tpl, parser) {
+export default function (tpl, parser, store) {
   function _getKeys (outlets) {
     outlets = outlets || []
     return outlets.map(match => match.replace(parser.outlet, (match, path) => path))
   }
 
   function _handleProps ($el) {
+    const id = Utils.addId($el)
+
     const dynamic = Array.from($el.attributes).reduce((acc, att) => {
       const {name, value} = att
       const keys = _getKeys(att.value.match(parser.outlet))
@@ -17,9 +19,7 @@ export default function (tpl, parser) {
     }, {})
 
     if (Object.keys(dynamic).length) {
-      Object.entries(dynamic).forEach(([key, triggers]) => {
-        Utils.setAttrTrigger($el, key, triggers)
-      })
+      Object.entries(dynamic).forEach(([key, triggers]) => store.addProp(id, key, triggers))
     }
   }
 
@@ -31,18 +31,17 @@ export default function (tpl, parser) {
       const triggers = _getKeys(matches)
 
       if ($parent && TXT_VALUE.includes($parent.tagName)) {
-        Utils.setAttrTrigger($parent, 'value', triggers)
+        const id = Utils.addId($parent)
+        store.addProp(id, 'value', triggers)
       } else {
-        const $wrapper = document.createElement('span')
-        Utils.setAttrTrigger($wrapper, 'text', triggers)
-        $el.parentNode.insertBefore($wrapper, $el)
-        $wrapper.append($el)
+        const id = Utils.wrap($el)
+        store.addProp(id, 'text', triggers)
       }
     } else {
       const iterations = $el.textContent.match(parser.iterate)
       if (iterations && iterations.length) {
         const $parent = $el.parentNode
-        $el.parentNode.setAttribute('hp-id', Utils.random())
+
         iterations.forEach(match => {
           $el.parentNode.setAttribute('hp-iterate', Array.from(iterations).map(match => {
             return match.replace(parser.iterate, (match, key) => key)

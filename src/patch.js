@@ -1,30 +1,32 @@
 
 import Utils from './utils.js'
 
-export default function ($vTree, changed, trace) {
-  $vTree.querySelectorAll(Utils.attrQuery(changed)).forEach($v => {
-    const $r = Utils.getMatch($v)
-    const attrs = Utils.hotAttrs($r)
+const SPECIAL = {
+  text ($r, $v) {
+    $r.innerText = $v.innerText
+  },
+  value ($r, $v) {
+    if ($v.value) $r.value = $v.value
+    else $r.value = ''
+  }
+}
 
-    if (trace) {
-      console.log('patching attributes:', attrs)
-      console.log($r)
+export default function ($vTree, needsPatched, trace) {
+  console.groupCollapsed('updates')
+
+  Object.entries(needsPatched).forEach(([id, props]) => {
+    // console.log(id, props)
+    const $v = Utils.findId($vTree, id, true)
+    const $r = Utils.findId(document, id, true)
+
+    if ($r && $v) {
+      props.forEach(prop => {
+        if (trace) console.log('setting', prop, $r)
+        if (prop in SPECIAL) SPECIAL[prop]($r, $v)
+        else $r.setAttribute(prop, $v.getAttribute(prop))
+      })
     }
-
-    Object.keys(attrs).forEach(key => {
-      if (key === 'value') $r.value = $v.value
-      else $r.setAttribute(key, $v.getAttribute(key))
-    })
   })
 
-  $vTree.querySelectorAll(Utils.textQuery(changed)).forEach($v => {
-    const $r = Utils.getMatch($v)
-
-    if (trace) {
-      console.log('patching text:', $r.getAttribute('hp-text'))
-      console.log($r)
-    }
-
-    if ($r) $r.innerText = $v.innerText
-  })
+  console.groupEnd()
 }
