@@ -31,11 +31,11 @@ export default {
 
       Utils.benchmark(() => {
         patched = Patch($v, toPatch, trace)
-      }, 'patching DOM', trace)
+      }, `patching DOM`, trace)
 
       if (trace) {
         console.log('vDOM:', $v)
-        console.groupCollapsed('patched:')
+        console.groupCollapsed('patched:', patched.length, 'DOM elements')
         patched.forEach(patch => console.log(...patch))
         console.groupEnd()
         console.groupEnd()
