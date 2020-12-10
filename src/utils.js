@@ -1,7 +1,5 @@
 
-const ATTR = 'hp-live'
 const ID_PREFIX = 'hp-'
-const DILEM = '|'
 const FN = 'fn'
 
 export default {
@@ -22,6 +20,12 @@ export default {
     return $tmp
   },
 
+  benchmark (fn, label, trace) {
+    const start = new Date().getTime()
+    fn()
+    if (trace) console.log(label, new Date().getTime() - start, 'ms')
+  },
+
   addId ($el) {
     const existing = [...$el.attributes].find((attr) => attr.name.startsWith(ID_PREFIX))
     if (existing) return existing.name.replace(ID_PREFIX, '')
@@ -40,11 +44,14 @@ export default {
     return id
   },
 
-  findId ($tree, id, single = true) {
-    const search = `[${ID_PREFIX}${id}]`
-    return single ? $tree.querySelector(search) : $tree.querySelectorAll(search)
-  }
+  findById ($tree, ids) {
+    const search = ids.map(id => `[${ID_PREFIX}${id}]`).join(',')
 
-  // getMatch: ($el) => document.querySelector(`[${ID}="${$el.getAttribute(ID)}"]`)
+    return Array.from($tree.querySelectorAll(search)).reduce((obj, $el) => {
+      const {name} = Array.from($el.attributes).find(({name}) => name.startsWith(ID_PREFIX))
+      obj[name.replace(ID_PREFIX, '')] = $el
+      return obj
+    }, {})
+  }
 
 }

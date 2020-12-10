@@ -3,36 +3,33 @@ import Utils from './utils.js'
 
 const SPECIAL = {
   text ($r, $v) {
-    const desired = $v.innerHTMl
-    const current = $r.innerHTML
-    if (current !== desired) $r.innerHTML = $v.innerHTML
+    $r.innerHTML = $v.innerHTML
   },
   value ($r, $v) {
     const desired = $v.value === null ? '' : $v.value
-    const current = $r.value
-    if (current !== desired) $r.value = desired
+    if (document.activeElement !== $r) $r.value = desired
   }
 }
 
-export default function ($vTree, needsPatched, trace) {
-  console.groupCollapsed('updates')
+export default function ($vTree, needsPatched) {
+  const changed = []
+
+  const ids = Object.keys(needsPatched)
+  const rMap = Utils.findById(document, ids)
+  const vMap = Utils.findById($vTree, ids)
 
   Object.entries(needsPatched).forEach(([id, props]) => {
-    const $v = Utils.findId($vTree, id, true)
-    const $r = Utils.findId(document, id, true)
+    const $r = rMap[id]
+    const $v = vMap[id]
 
     if ($r && $v) {
       props.forEach(prop => {
-        if (trace) console.log('setting', prop, $r)
+        changed.push([prop, $r])
         if (prop in SPECIAL) SPECIAL[prop]($r, $v)
-        else {
-          const desired = $v.getAttribute(prop)
-          const current = $r.getAttribute(prop)
-          if (current !== desired) $r.setAttribute(prop, desired)
-        }
+        else $r.setAttribute(prop, $v.getAttribute(prop))
       })
     }
   })
 
-  console.groupEnd()
+  return changed
 }
