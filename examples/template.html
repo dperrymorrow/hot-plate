@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="//unpkg.com/dracula-prism/css/dracula-prism.css">
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1.19.0/prism.min.js"></script>
+
+    <style media="screen">
+      body {
+        background-color: #333;
+        font-family: sans-serif;
+        color: #999;
+      }
+
+      h1 {
+        transition: color 1s ease;
+      }
+
+      h1.highlight {
+        color: red;
+      }
+
+      pre {
+        background-color: #222;
+        font-family: Monaco;
+        font-isze: 13px;
+        color: #efefef;
+        padding: 30px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <pre id="template-output"></pre>
+
+    <div id="app">
+      <!-- application is rendered here -->
+    </div>
+
+    <script type="text/template" id="demo-template">
+    <h1 class="<%= highlightIfDavid() %> <%= name %>" enabled="<%= name %>"><%= name %></h1>
+
+    <% if (name === "david") { %>
+      <blockqoute>Hello <%= name %>!</blockqoute>
+    <% } %>
+
+    <ul data-items="<%= JSON.stringify(items) %><%= name %>">
+      <% items.forEach((item, index) => { %>
+        <li>
+          <%= item.id %>
+          <%= item.title %>
+          <button onclick="app.handlers.remove(<%= item.id %>)">x</button>
+        </li>
+      <% }); %>
+    </ul>
+
+    <input type="text" value="<%= name %>" oninput="app.handlers.changeName(event)" />
+    two way
+    <input type="text" value="<%= name %>" oninput="app.handlers.changeName(event)" />
+
+    <textarea class="<%= name %>" oninput="app.handlers.changeName(event)"><%= name %></textarea>
+
+    <hr/>
+
+    <div>
+      <%= newName %>
+    </div>
+
+    <label>
+      add one
+      <input type="text" value="<%= newName %>" oninput="app.handlers.changeNewName(event)" />
+      <button onclick="app.handlers.add()">Add</button>
+    </label>
+  </script>
+
+    <script src="./template.js" type="module"></script>
+  </body>
+
+</html>

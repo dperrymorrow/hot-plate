@@ -11,10 +11,11 @@ export default {
     ejs
   },
 
-  app ({template, data, parser, render, trace}) {
+  app ({ template, data, engine, trace, $el }) {
     const store = Store.create()
-    const injected = Inject(template, parser, store)
-    const $v = Utils.getShadow()
+    const injected = Inject(template, engine, store)
+
+    const { render } = engine
 
     const trap = ProxyTrap.create(data, function (changed) {
       if (trace) console.group('changed:', changed)
@@ -22,28 +23,32 @@ export default {
       let toPatch, patched
 
       Utils.benchmark(() => {
-        $v.innerHTML = render(injected, trap)
-      }, 're-render vDOM', trace)
-
-      Utils.benchmark(() => {
         toPatch = store.find(changed)
       }, 'parsing store', trace)
 
       Utils.benchmark(() => {
-        patched = Patch($v, toPatch, trace)
+        patched = Patch(changed, toPatch, render, trap, trace)
       }, `patching DOM`, trace)
 
       if (trace) {
-        console.log('vDOM:', $v)
-        console.groupCollapsed('patched:', patched.length, 'DOM elements')
-        patched.forEach(patch => console.log(...patch))
-        console.groupEnd()
+        console.log('patched:', patched, 'DOM elements')
         console.groupEnd()
       }
     })
 
     if (trace) console.log('store', store.stash)
-    return {data: trap, template: injected, store}
+
+    const observer = new MutationObserver(function ([record]) {
+      const { addedNodes, removedNodes } = record
+      Array.from(addedNodes)
+        .filter($node => $node.nodeType === Node.ELEMENT_NODE).forEach(store.registerNode)
+    })
+
+    // Start observing the target node for configured mutations
+    observer.observe($el, { childList: true })
+    $el.innerHTML = render(injected, trap)
+
+    return { data: trap, template: injected, store }
   }
 
 }

@@ -26,9 +26,14 @@ export default {
     if (trace) console.log(label, new Date().getTime() - start, 'ms')
   },
 
+  getId ($el) {
+    const attr = [...$el.attributes].find((attr) => attr.name.startsWith(ID_PREFIX))
+    return attr ? attr.name.replace(ID_PREFIX, '') : null
+  },
+
   addId ($el) {
-    const existing = [...$el.attributes].find((attr) => attr.name.startsWith(ID_PREFIX))
-    if (existing) return existing.name.replace(ID_PREFIX, '')
+    const existing = this.getId($el)
+    if (existing) return existing
 
     const min = Date.now()
     const uniq = Math.round(Math.random() * (9999999999999 - min) + min).toString(36)
@@ -42,16 +47,6 @@ export default {
     $el.parentNode.insertBefore($wrapper, $el)
     $wrapper.append($el)
     return id
-  },
-
-  findById ($tree, ids) {
-    const search = ids.map(id => `[${ID_PREFIX}${id}]`).join(',')
-
-    return Array.from($tree.querySelectorAll(search)).reduce((obj, $el) => {
-      const {name} = Array.from($el.attributes).find(({name}) => name.startsWith(ID_PREFIX))
-      obj[name.replace(ID_PREFIX, '')] = $el
-      return obj
-    }, {})
   }
 
 }

@@ -2,20 +2,20 @@
 import Utils from './utils.js'
 
 export default {
-  create (data, callback) {
+  create(data, callback) {
     let que = []
 
     const _debounced = Utils.debounce(() => {
       callback(que)
       que = []
-    }, 10)
+    }, 0)
 
     const _addToQue = path => {
       if (!que.includes(path)) que.push(path)
       _debounced(que)
     }
 
-    function _buildProxy (raw, tree = []) {
+    function _buildProxy(raw, tree = []) {
       return new Proxy(raw, {
         get: function (target, prop) {
           const value = Reflect.get(...arguments)

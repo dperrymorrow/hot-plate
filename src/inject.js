@@ -12,14 +12,14 @@ export default function (tpl, parser, store) {
     const id = Utils.addId($el)
 
     const dynamic = Array.from($el.attributes).reduce((acc, att) => {
-      const {name, value} = att
+      const { name, value } = att
       const keys = _getKeys(att.value.match(parser.outlet))
       if (keys.length) acc[name] = keys
       return acc
     }, {})
 
     if (Object.keys(dynamic).length) {
-      Object.entries(dynamic).forEach(([key, triggers]) => store.addProp(id, key, triggers))
+      Object.entries(dynamic).forEach(([key, triggers]) => store.addProp(id, key, triggers, key === 'value' ? $el.value : $el.getAttribute(key)))
     }
   }
 
@@ -32,20 +32,17 @@ export default function (tpl, parser, store) {
 
       if ($parent && TXT_VALUE.includes($parent.tagName)) {
         const id = Utils.addId($parent)
-        store.addProp(id, 'value', triggers)
+        store.addProp(id, 'value', triggers, $parent.value)
       } else {
         const id = Utils.wrap($el)
-        store.addProp(id, 'text', triggers)
+        store.addProp(id, 'text', triggers, $el.textContent)
       }
     } else {
-      const iterations = $el.textContent.match(parser.iterate)
+      const iterations = [...$el.textContent.matchAll(parser.iterate)]
       if (iterations && iterations.length) {
-        const $parent = $el.parentNode
-
-        iterations.forEach(match => {
-          $el.parentNode.setAttribute('hp-iterate', Array.from(iterations).map(match => {
-            return match.replace(parser.iterate, (match, key) => key)
-          }).join(','))
+        const id = Utils.addId($parent)
+        iterations.forEach(([full, arr, pointer, index]) => {
+          store.addScope($parent, '$scope', arr, pointer, index)
         })
       }
     }
@@ -64,7 +61,7 @@ export default function (tpl, parser, store) {
   Array.from($shadow.childNodes).forEach(_injectNode)
   let injected = $shadow.innerHTML
 
-  cleanup.forEach(({search, replace}) => {
+  cleanup.forEach(({ search, replace }) => {
     injected = injected.replace(search, replace)
   })
   return injected

@@ -1,26 +1,45 @@
+import Utils from './utils.js'
+
 export default {
 
   create () {
     const stash = {}
 
+    function _getItem (id) {
+      let item = stash[id]
+      if (!item) item = stash[id] = { props: {} }
+      return item
+    }
+
     return {
       stash,
-      addProp (id, prop, triggers) {
-        const existing = stash[id]
+      addProp (id, prop, triggers, tpl) {
+        _getItem(id).props[prop] = { triggers, tpl }
+      },
 
-        if (existing) {
-          existing[prop] = triggers
-        } else {
-          stash[id] = { [prop]: triggers}
+      addScope (id, path, item, index) {
+        _getItem(id).$scope = path
+      },
+
+      registerNode ($el) {
+        const _parse = ($node) => {
+          const id = Utils.getId($node)
+          if (id && id in stash) {
+            stash[id].$el = $node
+          }
+          Array.from($node.children).forEach(_parse)
         }
+
+        _parse($el)
       },
 
       find (changed) {
         return Object.entries(stash).reduce((ret, [id, item]) => {
-          const props = Object.keys(item).filter(key => {
-            return changed.some(change => item[key].includes(change))
+          const matches = Object.entries(item.props).filter(([prop, val]) => {
+            return changed.some(change => val.triggers.includes(change))
           })
-          if (props.length) ret[id] = props
+
+          if (matches.length) ret[id] = item
           return ret
         }, {})
       }

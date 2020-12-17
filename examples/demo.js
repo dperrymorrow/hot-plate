@@ -4,9 +4,9 @@ import EjsParser from '../src/parsers/ejs.js'
 
 const inputData = {
   items: [
-    {id: 1, title: 'foo' },
-    {id: 2, title: 'bar' },
-    {id: 3, title: 'foo' }
+    { id: 1, title: 'foo' },
+    { id: 2, title: 'bar' },
+    { id: 3, title: 'foo' }
   ],
   name: 'Dave',
   newName: '',
@@ -15,17 +15,13 @@ const inputData = {
   }
 }
 
-const tpl = document.getElementById('demo-template').innerHTML
-
-const {template, data} = HotPlate.app({
-  template: Array(100).fill(tpl).join('\n'),
+const { template, data } = HotPlate.app({
+  template: Array(100).fill(document.getElementById('demo-template').innerHTML).join('\n'),
   data: inputData,
-  render: ejs.render,
-  parser: HotPlate.parsers.ejs,
+  engine: EjsParser(window.ejs),
+  $el: document.getElementById('app'),
   trace: true
 })
-
-document.getElementById('app').innerHTML = ejs.render(template, data)
 
 window.app = {
   handlers: {
@@ -41,7 +37,7 @@ window.app = {
       if (!ids.length) ids.push(0)
       const nextId = Math.max(...ids) + 1
 
-      data.items.push({id: nextId, title: data.newName})
+      data.items.push({ id: nextId, title: data.newName })
       data.newName = ''
     },
     changeNewName (ev) {
