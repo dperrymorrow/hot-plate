@@ -3,11 +3,15 @@ import Utils from './utils.js'
 export default {
 
   create () {
-    const stash = {}
+    const stash = []
 
-    function _getItem (id) {
-      let item = stash[id]
-      if (!item) item = stash[id] = { props: {} }
+    function _getItem (pointer, force = true) {
+      const id = typeof pointer === 'object' ? Utils.getId(pointer) : pointer
+      let item = stash.find(item => item.id === id)
+      if (!item && force) {
+        item = { props: {}, $el: null, id }
+        stash.push(item)
+      }
       return item
     }
 
@@ -17,31 +21,51 @@ export default {
         _getItem(id).props[prop] = { triggers, tpl }
       },
 
-      addScope (id, path, item, index) {
-        _getItem(id).$scope = path
+      addScope ($el, scope) {
+        _getItem($el, true).$scope = scope
       },
 
       registerNode ($el) {
-        const _parse = ($node) => {
-          const id = Utils.getId($node)
-          if (id && id in stash) {
-            stash[id].$el = $node
-          }
+        const {$scope} = _getItem($el, false) || {}
+
+        function _parse ($node) {
           Array.from($node.children).forEach(_parse)
+
+          const id = Utils.getId($node)
+          if (!id) return
+
+          let item = _getItem($node, false)
+
+          if (!item) {
+            item = {props: {}, id, $el: $node}
+            stash.push(item)
+          } else {
+            item.$el = $node
+          }
+
+// if scope and multiple??
+          if ($scope) {
+            Object.keys(item.props).forEach(key => {
+              let {triggers} = item.props[key]
+              item.props[key].triggers = triggers.map(trigger => trigger.replace(`${$scope.pointer}.`, `${$scope.arr}.`)
+            )
+            })
+          }
+
+          if ($scope) item.$scope = $scope
         }
 
         _parse($el)
       },
 
       find (changed) {
-        return Object.entries(stash).reduce((ret, [id, item]) => {
-          const matches = Object.entries(item.props).filter(([prop, val]) => {
-            return changed.some(change => val.triggers.includes(change))
-          })
+        return stash.filter(({props}) => {
+          const triggs = Object.values(props).reduce((acc, {triggers}) => {
+            return acc.concat(triggers)
+          }, [])
 
-          if (matches.length) ret[id] = item
-          return ret
-        }, {})
+          return changed.some(change => triggs.includes(change))
+        })
       }
     }
   }

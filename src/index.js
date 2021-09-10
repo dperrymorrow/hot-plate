@@ -36,16 +36,18 @@ export default {
       }
     })
 
-    if (trace) console.log('store', store.stash)
+    if (trace) console.log(store.stash)
 
     const observer = new MutationObserver(function ([record]) {
       const { addedNodes, removedNodes } = record
+
       Array.from(addedNodes)
-        .filter($node => $node.nodeType === Node.ELEMENT_NODE).forEach(store.registerNode)
+        .filter($node => $node.nodeType === Node.ELEMENT_NODE)
+        .forEach(store.registerNode)
     })
 
     // Start observing the target node for configured mutations
-    observer.observe($el, { childList: true })
+    observer.observe($el, { childList: true, subTree: true})
     $el.innerHTML = render(injected, trap)
 
     return { data: trap, template: injected, store }

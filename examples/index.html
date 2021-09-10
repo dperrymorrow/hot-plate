@@ -55,6 +55,7 @@
         <li>
           <%= item.id %>
           <%= item.title %>
+          <input type="text" value="<%= item.title %>" oninput="app.handlers.updateTitle(<%= index %>, event)"/>
           <button onclick="app.handlers.remove(<%= item.id %>)">x</button>
         </li>
       <% }); %>

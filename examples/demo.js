@@ -16,7 +16,7 @@ const inputData = {
 }
 
 const { template, data } = HotPlate.app({
-  template: Array(100).fill(document.getElementById('demo-template').innerHTML).join('\n'),
+  template: Array(1).fill(document.getElementById('demo-template').innerHTML).join('\n'),
   data: inputData,
   engine: EjsParser(window.ejs),
   $el: document.getElementById('app'),
@@ -27,6 +27,9 @@ window.app = {
   handlers: {
     changeName (ev) {
       data.name = ev.target.value
+    },
+    updateTitle (index, event) {
+      data.items[index].title = event.value
     },
     remove (id) {
       const index = data.items.findIndex(item => item.id === id)

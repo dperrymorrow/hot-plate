@@ -13,7 +13,7 @@ const SPECIAL = {
 export default function (paths, needsPatched, render, data) {
   let changed = 0
 
-  Object.entries(needsPatched).forEach(([id, def]) => {
+  needsPatched.forEach(def => {
     const $r = def.$el
 
     if ($r) {

@@ -9,8 +9,6 @@ export default function (tpl, parser, store) {
   }
 
   function _handleProps ($el) {
-    const id = Utils.addId($el)
-
     const dynamic = Array.from($el.attributes).reduce((acc, att) => {
       const { name, value } = att
       const keys = _getKeys(att.value.match(parser.outlet))
@@ -19,6 +17,7 @@ export default function (tpl, parser, store) {
     }, {})
 
     if (Object.keys(dynamic).length) {
+      const id = Utils.addId($el)
       Object.entries(dynamic).forEach(([key, triggers]) => store.addProp(id, key, triggers, key === 'value' ? $el.value : $el.getAttribute(key)))
     }
   }
@@ -39,10 +38,10 @@ export default function (tpl, parser, store) {
       }
     } else {
       const iterations = [...$el.textContent.matchAll(parser.iterate)]
-      if (iterations && iterations.length) {
+      if (iterations) {
         const id = Utils.addId($parent)
         iterations.forEach(([full, arr, pointer, index]) => {
-          store.addScope($parent, '$scope', arr, pointer, index)
+          store.addScope($parent, {arr, pointer, index})
         })
       }
     }
